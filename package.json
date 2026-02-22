@@ -1,0 +1,83 @@
+{
+    "license": "MIT",
+    "version": "0.1.0",
+    "name": "@jynxio/vite-css-modules",
+    "description": "@todo",
+    "author": "Jynxio <me@jynxio.com>",
+    "homepage": "https://github.com/jynxio/vite-css-modules",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jynxio/vite-css-modules.git"
+    },
+    "bugs": {
+        "url": "https://github.com/jynxio/vite-css-modules/issues"
+    },
+    "type": "module",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": "./dist/index.mjs",
+        "./package.json": "./package.json",
+        "./types": "./dist/types.d.ts"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "prepack": "pnpm build",
+        "prepublishOnly": "pnpm build",
+        "build": "tsdown --config-loader unrun",
+        "--------------------------------------------------------@": "Test",
+        "test": "vitest run --config ./vitest.config.ts",
+        "test:unit": "vitest run --config ./vitest.config.ts tests/unit",
+        "test:integration": "vitest run --config ./vitest.config.ts tests/integration",
+        "test:integration:build": "vitest run --config ./vitest.config.ts tests/integration/css-spy-plugin.build.test.ts",
+        "test:integration:dev": "vitest run --config ./vitest.config.ts tests/integration/css-spy-plugin.dev.test.ts",
+        "test:integration:hmr": "vitest run --config ./vitest.config.ts tests/integration/css-spy-plugin.hmr.test.ts",
+        "--------------------------------------------------------#": "Husky",
+        "prepare": "husky",
+        "husky:prepush": "pnpm lint:ts",
+        "husky:precommit": "lint-staged",
+        "husky:commitmsg": "commitlint --edit",
+        "--------------------------------------------------------$": "Linter",
+        "lint:js": "eslint . --fix",
+        "lint:ts": "tsc --build --noEmit",
+        "lint:style": "prettier --write .",
+        "lint:all": "pnpm lint:js && pnpm lint:ts && pnpm lint:style"
+    },
+    "engines": {
+        "node": ">=20.20.0",
+        "pnpm": ">=9"
+    },
+    "peerDependencies": {
+        "vite": ">=7"
+    },
+    "dependencies": {
+        "oxc-parser": "0.114.0"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "20.4.1",
+        "@commitlint/config-conventional": "20.4.1",
+        "@eslint/js": "9.39.2",
+        "@jynxio/eslint-plugin": "1.0.0",
+        "@playwright/test": "1.58.2",
+        "@total-typescript/ts-reset": "0.6.1",
+        "@types/fs-extra": "11.0.4",
+        "@types/node": "25.2.3",
+        "@typescript-eslint/eslint-plugin": "8.54.0",
+        "@typescript-eslint/parser": "8.54.0",
+        "bumpp": "10.4.1",
+        "eslint": "9.39.2",
+        "eslint-config-prettier": "10.1.8",
+        "fs-extra": "11.3.3",
+        "globals": "17.3.0",
+        "husky": "9.1.7",
+        "lint-staged": "16.2.7",
+        "prettier": "3.8.1",
+        "tsdown": "0.20.3",
+        "tsx": "4.21.0",
+        "typescript": "5.9.3",
+        "typescript-eslint": "8.54.0",
+        "vite": "7.3.1",
+        "vitest": "4.0.18"
+    }
+}
