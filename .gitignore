@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+.LSOverride
+.AppleDouble
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Productions
+**/out
+**/dist
+**/build
+
+# Developments
+node_modules
+**/node_modules
+
+*.tsbuildinfo
+package-lock.json
+
+# Environment, Secrets, Cache
+.env*
+*.pem
+*.tgz
+*.local
+*.cache
+*.draft

@@ -1,18 +1,61 @@
+import pkg from '$/package.json';
 import { parseSync } from 'oxc-parser';
-import { type Plugin } from 'vite';
-import { FILTER, QUERY } from './consts';
+import { type CSSModulesOptions, type Plugin } from 'vite';
+import { CSS_EXTS } from './_consts';
 
-function withCssModules(): Plugin[] {
-    return [interceptImport(), interceptTransform()];
+const PUBLIC_QUERY = 'isolate';
+const PRIVATE_QUERY = 'inline&_at-jynxio-slash-vite-css-modules';
+
+const PUBLIC_ID_RE = new RegExp(
+    String.raw`^(?:[^?]+)\.module\.(?:${CSS_EXTS.join('|')})\?${PUBLIC_QUERY}$`,
+);
+const PRIVATE_ID_RE = new RegExp(
+    String.raw`^(?:[^?]+)\.module\.(?:${CSS_EXTS.join('|')})\?${PRIVATE_QUERY}$`,
+);
+
+function cssModules(): Plugin[] {
+    const cssModulesSpy = new Map<string, { readonly [k in string]: string }>();
+
+    return [interceptConfig(), interceptImport(), interceptTransform()];
+
+    function interceptConfig(): Plugin {
+        return {
+            enforce: 'pre',
+            name: '@jynxio/vite-css-modules:intercept-config',
+            config(userConfig) {
+                const userGetJSON = (userConfig.css?.modules || {}).getJSON;
+                const spyingGetJSON = ((cssFileName, json, outputFileName) => {
+                    userGetJSON?.(cssFileName, json, outputFileName);
+                    cssModulesSpy.set(cssFileName, json);
+                }) satisfies CSSModulesOptions['getJSON'];
+
+                return { css: { modules: { getJSON: spyingGetJSON } } };
+            },
+            configResolved(resolvedConfig) {
+                if (resolvedConfig.css.transformer !== 'postcss')
+                    return fail(
+                        'Lightning CSS is not supported. Use PostCSS instead (hint: set `css.transformer` to `"postcss"`).',
+                    );
+
+                if (resolvedConfig.css.modules === false)
+                    return fail(
+                        'CSS Modules are disabled. Enable them to use this plugin (hint: remove `css.modules: false`).',
+                    );
+            },
+        };
+    }
 
     function interceptImport(): Plugin {
         return {
             enforce: 'pre',
-            name: 'vite-css-modules:import-interceptor',
+            name: '@jynxio/vite-css-modules:intercept-import',
             resolveId(id, importer) {
-                if (!FILTER.IMPORT.test(id)) return null;
+                if (!PUBLIC_ID_RE.test(id)) return null;
 
-                return this.resolve(convertImportSpecifier(id), importer, { skipSelf: true });
+                const pathPart = id.split('?')[0];
+                const newId = `${pathPart}?${PRIVATE_QUERY}`;
+
+                return this.resolve(newId, importer, { skipSelf: true });
             },
         };
     }
@@ -20,16 +63,15 @@ function withCssModules(): Plugin[] {
     function interceptTransform(): Plugin {
         return {
             enforce: 'post',
-            name: 'vite-css-modules:transform-interceptor',
+            name: '@jynxio/vite-css-modules:intercept-transform',
             transform: {
-                filter: { id: FILTER.TRANSFORM },
+                filter: { id: PRIVATE_ID_RE },
                 handler(code, id) {
-                    const [pathPart] = splitImportSpecifier(id);
-                    const [defaultExport, namedExports] = parseExport(code);
+                    const inline = parseDefaultExport(code);
+                    const module = cssModulesSpy.get(id) || {};
                     const declarations = [
-                        `import inline from "${pathPart}?inline";`,
-                        namedExports.join('\n'),
-                        `const module = ${defaultExport};`,
+                        `const module = ${JSON.stringify(module)};`,
+                        `const inline = ${inline};`,
                         'export { module, inline };',
                         'export default { module, inline };',
                     ];
@@ -41,25 +83,11 @@ function withCssModules(): Plugin[] {
     }
 }
 
-function splitImportSpecifier(importSpecifier: string): [pathPart: string, queryPart: string] {
-    const firstIdx = importSpecifier.indexOf('?');
-    const pathPart = importSpecifier.split('?')[0] ?? '';
-    const queryPart = firstIdx === -1 ? '' : importSpecifier.slice(firstIdx + 1);
-
-    return [pathPart, queryPart];
+function fail(msg: string): never {
+    throw new Error(`[${pkg.name}] ${msg}`);
 }
 
-function convertImportSpecifier(importSpecifier: string) {
-    const [pathPart, queryPart] = splitImportSpecifier(importSpecifier);
-
-    if (QUERY.PUBLIC.includes(queryPart)) return `${pathPart}?${QUERY.INTERNAL}`;
-
-    return importSpecifier;
-}
-
-function parseExport(code: string): [defaultExport: string, namedExports: string[]] {
-    let defaultExport = '{}';
-    const namedExports: string[] = [];
+function parseDefaultExport(code: string): string {
     const { module } = parseSync('noop.js', code);
 
     for (const { entries } of module.staticExports) {
@@ -67,13 +95,12 @@ function parseExport(code: string): [defaultExport: string, namedExports: string
             const { start, end } = entry;
             const kind = entry.exportName.kind;
 
-            if (kind === 'Name') namedExports.push(code.slice(start, end));
-            if (kind === 'Default') defaultExport = code.slice(start, end);
+            if (kind === 'Default') return code.slice(start, end);
         }
     }
 
-    return [defaultExport, namedExports];
+    return '{}';
 }
 
-export { withCssModules };
-export default withCssModules;
+export { cssModules };
+export default cssModules;
