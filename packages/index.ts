@@ -1,7 +1,7 @@
 import pkg from '$/package.json';
 import { parseSync } from 'oxc-parser';
 import { type CSSModulesOptions, type Plugin } from 'vite';
-import { CSS_EXTS } from './_consts';
+import { CSS_EXTS } from './consts';
 
 const PUBLIC_QUERY = 'isolate';
 const PRIVATE_QUERY = 'inline&_at-jynxio-slash-vite-css-modules';

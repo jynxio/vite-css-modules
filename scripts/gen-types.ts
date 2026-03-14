@@ -1,5 +1,5 @@
+import { CSS_EXTS } from '@/consts';
 import fs from 'fs-extra';
-import { CSS_EXTS } from './_consts';
 
 function writeTypeDeclaration(destination: string): Promise<void> {
     return fs.outputFile(destination, createTypeDeclaration());
@@ -26,4 +26,4 @@ function createTypeDeclaration(): string {
     return declarations.join('\n').trim();
 }
 
-export { writeTypeDeclaration as write };
+export { writeTypeDeclaration as genTypes };

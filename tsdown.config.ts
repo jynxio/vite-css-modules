@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { cwd } from 'node:process';
 import { defineConfig } from 'tsdown';
-import { write } from './packages/types';
+import { genTypes } from './scripts/gen-types';
 
 export default defineConfig({
     exports: {
@@ -13,7 +13,7 @@ export default defineConfig({
     entry: './packages/index.ts',
     hooks: {
         'build:done': async () => {
-            await write(join(cwd(), './dist/types.d.ts'));
+            await genTypes(join(cwd(), './dist/types.d.ts'));
         },
     },
 });
