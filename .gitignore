@@ -28,6 +28,7 @@ package-lock.json
 .env*
 *.pem
 *.tgz
+*.temp
 *.local
 *.cache
 *.draft

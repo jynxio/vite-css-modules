@@ -23,8 +23,7 @@
         "dist"
     ],
     "scripts": {
-        "prepack": "pnpm build",
-        "prepublishOnly": "pnpm build",
+        "ship": "node ./scripts/publish.ts",
         "build": "tsdown --config-loader unrun",
         "prepare": "husky",
         "husky:prepush": "pnpm lint:ts",
