@@ -16,9 +16,12 @@
         "skipLibCheck": true,
         "noUncheckedIndexedAccess": true,
         "types": ["node"],
-        "paths": { "$/*": ["./*"], "@/*": ["./src/*"] }
+        "paths": {
+            "$/*": ["./*"],
+            "@/*": ["./packages/*"]
+        }
     },
 
-    "include": ["src/**/*", "./tsdown.config.ts", "reset.d.ts"],
-    "exclude": ["node_modules", "dist", "build", "out"]
+    "include": ["packages/**/*", "scripts/**/*", "./tsdown.config.ts", "reset.d.ts"],
+    "exclude": ["node_modules", "dist"]
 }
